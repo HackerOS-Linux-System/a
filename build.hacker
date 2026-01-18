@@ -1,1 +1,3 @@
-
+// hl
+> cd source-code
+> hl compile main.hk
