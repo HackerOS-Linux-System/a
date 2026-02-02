@@ -1,3 +1,4 @@
-// hl
+// crystal
+
 > cd source-code
-> hl compile main.hk
+> crystal build src/main.cr --release
