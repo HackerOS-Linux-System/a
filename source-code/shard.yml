@@ -1,1 +1,12 @@
+name: a
+version: v0.2
 
+authors:
+  - HackerOS Team <michalkaczmarzyk2009l@gmail.com>
+
+description: |
+  A simple Crystal tool for system updates with optional flags.
+
+crystal: ">= 1.0.0"
+
+license: BSD-3
