@@ -1,1 +1,88 @@
+;; ─── Wykryj tryb przez argv ───────────────────────────────────────────────────
+;; Uzywamy > test zamiast ::contains zeby uniknac wypisywania na stdout
 
+;; Sprawdz --help
+> test "@arg0" = "--help"
+? ok
+    ::nl
+    ::cyan   Uzycie: a [opcje]
+    ::nl
+    ~> Opcje:
+    ~>   --only-system   Tylko aktualizacja skryptow HackerOS
+    ~>   --help          Pokaz te pomoc
+    ::nl
+    ~> Bez opcji: pelna aktualizacja (apt + flatpak + HackerOS)
+    ::nl
+done
+
+;; Sprawdz -h
+> test "@arg0" = "-h"
+? ok
+    ~> Uzycie: a [--only-system] [--help]
+done
+
+;; Sprawdz --only-system
+> test "@arg0" = "--only-system"
+? ok
+    ~> Uruchamianie aktualizacji skryptow HackerOS...
+
+    > /usr/share/HackerOS/Scripts/Bin/update-hackeros.sh
+
+    ? ok
+        ::green Aktualizacja HackerOS zakonczona v
+    done
+
+    ? err
+        ::red Blad podczas aktualizacji HackerOS
+    done
+done
+
+;; ─── Tryb pelny — brak argumentow lub nieznany argument ─────────────────────
+
+> test "@argc" = "0"
+? ok
+    ~> Uruchamianie pelnej aktualizacji...
+    ::nl
+
+    ~> [1/3] Aktualizacja apt...
+    ^> apt update
+
+    ? ok
+        ^> apt upgrade -y
+        ? ok
+            ::green apt
+        done
+        ? err
+            ::red Blad apt upgrade - kontynuuje...
+        done
+    done
+
+    ? err
+        ::red Blad apt update - kontynuuje...
+    done
+
+    ~> [2/3] Aktualizacja flatpak...
+    > flatpak update -y
+
+    ? ok
+        ::green flatpak
+    done
+
+    ? err
+        ::yellow flatpak - blad lub niedostepny
+    done
+
+    ~> [3/3] Aktualizacja skryptow HackerOS...
+    > /usr/share/HackerOS/Scripts/Bin/update-hackeros.sh
+
+    ? ok
+        ::green HackerOS scripts
+    done
+
+    ? err
+        ::yellow HackerOS scripts - pomijam
+    done
+
+    ::nl
+    ::green Wszystkie aktualizacje zakonczone
+done
