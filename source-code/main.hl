@@ -1,86 +1,101 @@
-;; ─── Wykryj tryb przez argv ───────────────────────────────────────────────────
-;; Uzywamy > test zamiast ::contains zeby uniknac wypisywania na stdout
+#!/usr/bin/hl
 
-;; Sprawdz --help
+using <gen 2>
+
+% SCRIPTS_BIN = /usr/share/HackerOS/Scripts/Bin
+
+;; ── Help ──────────────────────────────────────────────────────────────────────
 > test "@arg0" = "--help"
 ? ok
     ::nl
-    ::cyan   Uzycie: a [opcje]
+    ::cyan Uzycie: a [opcje]
     ::nl
     ~> Opcje:
     ~>   --only-system   Tylko aktualizacja skryptow HackerOS
-    ~>   --help          Pokaz te pomoc
+    ~>   --help / -h     Pokaz te pomoc
     ::nl
     ~> Bez opcji: pelna aktualizacja (apt + flatpak + HackerOS)
     ::nl
+    > exit 0
 done
 
-;; Sprawdz -h
 > test "@arg0" = "-h"
 ? ok
     ~> Uzycie: a [--only-system] [--help]
+    > exit 0
 done
 
-;; Sprawdz --only-system
+;; ── Tylko system ──────────────────────────────────────────────────────────────
 > test "@arg0" = "--only-system"
 ? ok
     ~> Uruchamianie aktualizacji skryptow HackerOS...
 
-    > /usr/share/HackerOS/Scripts/Bin/update-hackeros.sh
-
+    % UPD = @SCRIPTS_BIN/update-hackeros.hl
+    ::exists @UPD
     ? ok
-        ::green Aktualizacja HackerOS zakonczona v
+        > hl run @UPD
+        ? ok
+            ::green Aktualizacja HackerOS zakonczona
+        done
+        ? err
+            ::red Blad podczas aktualizacji HackerOS
+        done
+    done
+    ? err
+        ::red Brak: @UPD
+        > exit 1
     done
 
-    ? err
-        ::red Blad podczas aktualizacji HackerOS
-    done
+    > exit 0
 done
 
-;; ─── Tryb pelny — brak argumentow lub nieznany argument ─────────────────────
-
+;; ── Pelna aktualizacja ────────────────────────────────────────────────────────
 > test "@argc" = "0"
 ? ok
     ~> Uruchamianie pelnej aktualizacji...
     ::nl
 
+    ;; [1/3] apt
     ~> [1/3] Aktualizacja apt...
     ^> apt update
-
     ? ok
         ^> apt upgrade -y
         ? ok
-            ::green apt
+            ::green apt OK
         done
         ? err
-            ::red Blad apt upgrade - kontynuuje...
+            ::red Blad apt upgrade — kontynuuje...
         done
     done
-
     ? err
-        ::red Blad apt update - kontynuuje...
+        ::red Blad apt update — kontynuuje...
     done
 
+    ;; [2/3] flatpak
     ~> [2/3] Aktualizacja flatpak...
     > flatpak update -y
-
     ? ok
-        ::green flatpak
+        ::green flatpak OK
     done
-
     ? err
-        ::yellow flatpak - blad lub niedostepny
+        ::yellow flatpak — blad lub niedostepny
     done
 
+    ;; [3/3] HackerOS scripts
     ~> [3/3] Aktualizacja skryptow HackerOS...
-    > /usr/share/HackerOS/Scripts/Bin/update-hackeros.sh
-
+    % UPD = @SCRIPTS_BIN/update-hackeros.hl
+    ::exists @UPD
     ? ok
-        ::green HackerOS scripts
+        > hl run @UPD
+        ? ok
+            ::green HackerOS scripts OK
+        done
+        ? err
+            ::yellow HackerOS scripts — blad, pomijam
+        done
     done
-
     ? err
-        ::yellow HackerOS scripts - pomijam
+        ::yellow Brak: @UPD — pomijam
     done
 
     ::nl
